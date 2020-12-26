@@ -203,7 +203,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event)
 
     ui->widget->rescaleAxes();
     ui->widget->replot();
-    ui->label_5->setText(QString::number(event->x()));
-    ui->label_6->setText(QString::number(event->y()));
+    ui->label_5->setText(QString::number(path[path.size()-1][0]));
+    ui->label_6->setText(QString::number(path[path.size()-1][1]));
     ui->label_9->setText(QString::number(f->eval(path[path.size()-1])));
 }
