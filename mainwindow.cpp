@@ -43,6 +43,11 @@ void MainWindow::createFunc(int value){
         break;
     }
     }
+    if(my_area)
+    {
+        drawMap();
+    ui->widget->replot();
+    }
 }
 void MainWindow::setStoch(double v1,double v2){
     if(method) delete method;
@@ -89,6 +94,9 @@ void MainWindow::on_radioButton_4_clicked() //area hard
     coord.push_back(std::make_pair(a.x1,a.y1));
     coord.push_back(std::make_pair(a.x2,a.y2));
     setAreaHard(coord);
+    drawMap();
+    ui->widget->replot();
+
     }
 }
 
@@ -116,7 +124,7 @@ void MainWindow::on_radioButton_5_clicked()
 void MainWindow::on_radioButton_6_clicked()
 {
     StopCrit2 a;
-    if( a.exec() == QDialog::Accepted){
+    if(a.exec() == QDialog::Accepted){
     setStop2(a.getv());
     }
 }
@@ -142,14 +150,65 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
 void MainWindow::on_radioButton_3_clicked() //area easy
 {
     setAreaEasy();
+    drawMap();
+    ui->widget->replot();
 }
 
+void MainWindow::drawMap(){
+    double xmin=my_area->coord[0].first,xmax=my_area->coord[0].second, ymin=my_area->coord[1].first,ymax=my_area->coord[1].second;
+    QCPColorMap *colorMap = new QCPColorMap(ui->widget->xAxis, ui->widget->yAxis);
+    colorMap->data()->setSize(705, 315);
+    colorMap->data()->setRange(QCPRange(xmin, xmax), QCPRange(ymin, ymax));
+    for (int x=0; x<705; ++x)
+      for (int y=0; y<315; ++y)
+      {
+          std::vector<double> temp;
+          temp.push_back(xmin + x * (xmax - xmin) / 705);
+          temp.push_back(ymin + y * (ymax - ymin) / 315);
+        colorMap->data()->setCell(x, y, f->eval(temp));
+      }
+    colorMap->setGradient(QCPColorGradient::gpPolar);
+    colorMap->rescaleDataRange(true);
+    ui->widget->rescaleAxes();
+}
 void MainWindow::mousePressEvent(QMouseEvent* event)
 {
     xclick=ui->widget->xAxis->pixelToCoord(event->x());
     yclick=ui->widget->yAxis->pixelToCoord(event->y());
+    if(event->x()<40 || event->x()>700 || event->y()<25 || event->y()>300) return;
+    if(!my_area || !stop || !method){
+        QMessageBox::warning(this, "ERROR", "Choose all the parameters.");
+        return;
+    }
+    setIterNum(ui->doubleSpinBox->value());
+    std::vector<std::vector<double>> path;
+    std::vector<double> result;
+    result.push_back(xclick);
+    result.push_back(yclick);
+        path=method->optimize(f,my_area,stop,result,num_of_iter);
+
+    drawMap();
+    QCPCurve* tcCurve = new QCPCurve(ui->widget->xAxis, ui->widget->yAxis);
+    QCPCurve* Curve1 = new QCPCurve(ui->widget->xAxis, ui->widget->yAxis);
+    QCPCurve* Curve2 = new QCPCurve(ui->widget->xAxis, ui->widget->yAxis);
+    Curve1->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
+    Curve2->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
+    Curve1->setPen(QPen(QColor(255, 0, 0)));
+    Curve2->setPen(QPen(QColor(255, 255, 0)));
+    tcCurve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
+    tcCurve->setPen(QPen(QColor(255, 255, 255)));
+    for(int i = 0; i < path.size(); ++i)
+        tcCurve->addData(i, path[i][0], path[i][1]);
+    Curve1->addData(0, path[0][0], path[0][1]);
+    Curve2->addData(0, path[path.size()-1][0], path[path.size()-1][1]);
+
+    ui->widget->rescaleAxes();
+    ui->widget->replot();
+    ui->label_5->setText(QString::number(event->x()));
+    ui->label_6->setText(QString::number(event->y()));
+    ui->label_9->setText(QString::number(f->eval(path[path.size()-1])));
 }
-void MainWindow::on_incrementButton_clicked()
+/*void MainWindow::on_incrementButton_clicked()
 {
     if(!my_area || !stop || !method){
         QMessageBox::warning(this, "ERROR", "Choose all the parameters.");
@@ -161,10 +220,6 @@ void MainWindow::on_incrementButton_clicked()
     result.push_back(xclick);
     result.push_back(yclick);
         path=method->optimize(f,my_area,stop,result,num_of_iter);
-    /*std::cout<<"Result is: (";
-    for (int i = 0; i < 2; ++i)
-        std::cout << result[i] << " , ";
-    std::cout<<")";*/
 
     double xmin=my_area->coord[0].first,xmax=my_area->coord[0].second, ymin=my_area->coord[1].first,ymax=my_area->coord[1].second;
     QCPColorMap *colorMap = new QCPColorMap(ui->widget->xAxis, ui->widget->yAxis);
@@ -200,4 +255,4 @@ void MainWindow::on_incrementButton_clicked()
     ui->label_6->setText(QString::number(path[path.size()-1][1]));
     ui->label_9->setText(QString::number(f->eval(path[path.size()-1])));
     //ui->widget->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
-}
+}*/

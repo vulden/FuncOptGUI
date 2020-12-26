@@ -51,7 +51,8 @@ private slots:
 
     void on_comboBox_currentIndexChanged(int index);
 
-    void on_incrementButton_clicked();
+    void drawMap();
+    // void on_incrementButton_clicked();
 
     void mousePressEvent(QMouseEvent*);
 
@@ -63,6 +64,6 @@ private:
     StopCriteria* stop=nullptr;
     area * my_area=nullptr;
     int num_of_iter;
-    double xclick,yclick;
+    double xclick=0,yclick=0;
 };
 #endif // MAINWINDOW_H

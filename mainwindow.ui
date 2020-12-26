@@ -14,19 +14,6 @@
    <string>Functions optimization</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="incrementButton">
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>30</y>
-      <width>221</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Press HERE to run optimization</string>
-    </property>
-   </widget>
    <widget class="QComboBox" name="comboBox">
     <property name="geometry">
      <rect>
